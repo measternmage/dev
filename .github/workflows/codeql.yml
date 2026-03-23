@@ -9,6 +9,13 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
+
+- name: Start CPU Profiling
+        run: |
+          # Run top in batch mode, delay of 5 seconds, write to cpu_log.txt in the background
+          top -b -d 5 > cpu_log.txt &
+          echo $! > top_pid.txt
+          
 name: "CodeQL Advanced"
 
 on:
@@ -101,3 +108,13 @@ jobs:
       uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{matrix.language}}"
+
+        - name: Stop CPU Profiling
+        run: |
+          kill $(cat top_pid.txt)
+          
+      - name: Upload CPU Log
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-utilization-log
+          path: cpu_log.txt
